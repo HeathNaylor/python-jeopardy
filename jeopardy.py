@@ -1,29 +1,13 @@
-from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, PopUpDialog, Text, Divider, Button
+from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, PopUpDialog, Text, Divider, Button, PopupMenu
 from asciimatics.exceptions import ResizeScreenError, NextScene, StopApplication
 from asciimatics.renderers import SpeechBubble, FigletText, Box
 from asciimatics.effects import Cycle, Stars, Print, Clock
 from asciimatics.event import KeyboardEvent
 from asciimatics.screen import Screen
 from asciimatics.scene import Scene
+from CategoriesModel import categories
 import sys
 import os
-
-categories = [
-    "Data Types",
-    "Debugging",
-    "Modules, Functions",
-    "Selection",
-    "Iteration",
-    "Classes",
-]
-
-values = [
-    200,
-    400,
-    600,
-    800,
-    1000,
-]
 
 class JeopardyFrame(Frame):
     def __init__(self, screen):
@@ -38,9 +22,10 @@ class JeopardyFrame(Frame):
 
         # We use list comprehension here to create a dynamicly sized list based on how many columns we specify above
         jeopardy_columns = 6
-        layout = Layout([100/jeopardy_columns for index in range(jeopardy_columns)], fill_frame=True)
-        self.add_layout(layout)
-        self.define_grid(layout)
+        jeopardy_rows = 6
+        layouts = [Layout([100/jeopardy_columns for index in range(jeopardy_columns)]) for index in range(jeopardy_rows)]
+        [self.add_layout(layout) for layout in layouts]
+        self.define_grid(layouts, screen.height)
 
         # Prepare the Frame for use.
         self.fix()
@@ -57,17 +42,17 @@ class JeopardyFrame(Frame):
         # Now pass on to lower levels for normal handling of the event.
         return super(JeopardyFrame, self).process_event(event)
 
-    def define_grid(self, layout):
+    def define_grid(self, layouts, screen_height):
         # Create the grid of categories and values
         for index in range(len(categories)):
-            category = Label(categories[index], align='^')
+            category = Label(categories[index]['category'], align='^')
             category.custom_colour = "field"
-            layout.add_widget(category, index)
-            layout.add_widget(Divider(), index)
+            layouts[0].add_widget(category, index)
+            layouts[0].add_widget(Divider(), index)
 
-            for value_index in range(len(values)):
-                layout.add_widget(Button(values[value_index], self._clicked), index)
-                layout.add_widget(Divider(draw_line=False, height=6), index)
+            for value_index in range(len(categories[index]['clues'])):
+                layouts[value_index + 1].add_widget(Button(categories[index]["clues"][value_index]["points"], self._clicked), index)
+                layouts[value_index + 1].add_widget(Divider(draw_line=False, height=screen_height // 7), index)
 
 class ClueFrame(Frame):
     def __init__(self, screen):
@@ -79,17 +64,22 @@ class ClueFrame(Frame):
             hover_focus=True,
             name="Jeopardy Clue"
         )
-        layout = Layout([1], fill_frame=True)
+        layout = Layout([1])
+        layout2 = Layout([1])
         self.add_layout(layout)
-        self.add_effect(self._speak(self._canvas, {"text": "CLUE", "font": 'starwars'},[screen.width // 2, 1], 20))
-        category = Label("These data types are all examples of Sequence types or ordered sets.", align='^')
+        self.add_layout(layout2)
+        self.add_effect(self._figlet(self._canvas, {"text": "CLUE", "font": 'starwars'},[screen.width // 2, 1], 20))
+        self.padding = Label("", align='^', height=10)
+        category = Label("These data types are all examples of Sequence types or ordered sets.", align='^', height=2)
+        self.padding.custom_colour = "field"
         category.custom_colour = "field"
-        layout.add_widget(category, 0)
+        layout.add_widget(self.padding, 0)
+        layout2.add_widget(category, 0)
 
         # Prepare the Frame for use.
         self.fix()
  
-    def _speak(self, screen, text, pos, offset):
+    def _figlet(self, screen, text, pos, offset):
         return Print(
             screen,
             FigletText(text["text"], text["font"]),
@@ -99,9 +89,19 @@ class ClueFrame(Frame):
             bg=Screen.COLOUR_BLUE
         )
 
+    def _toggle_answer(self):
+        if len(self.padding.text):
+            self.padding.text = ""
+            return
+
+        self.padding.text = "Partayyy!"
+
+
     def process_event(self, event):
         # Do the key handling for this Frame.
         if isinstance(event, KeyboardEvent):
+            if event.key_code == ord('r'):
+                self._toggle_answer()
             if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:
                 raise NextScene("Main")
 
