@@ -9,6 +9,8 @@ from CategoriesModel import categories
 import sys
 import os
 
+clue_position = {"row": 0, "column": 0}
+
 class JeopardyFrame(Frame):
     def __init__(self, screen):
         super(JeopardyFrame, self).__init__(
@@ -23,14 +25,16 @@ class JeopardyFrame(Frame):
         # We use list comprehension here to create a dynamicly sized list based on how many columns we specify above
         jeopardy_columns = 6
         jeopardy_rows = 6
-        layouts = [Layout([100/jeopardy_columns for index in range(jeopardy_columns)]) for index in range(jeopardy_rows)]
-        [self.add_layout(layout) for layout in layouts]
-        self.define_grid(layouts, screen.height)
+        self.layouts = [Layout([100/jeopardy_columns for index in range(jeopardy_columns)]) for index in range(jeopardy_rows)]
+        [self.add_layout(layout) for layout in self.layouts]
+        self.define_grid(screen)
 
         # Prepare the Frame for use.
         self.fix()
 
-    def _clicked(self):
+    def _clicked(self, screen, button_location):
+        clue_position['column'] = button_location["x"]
+        clue_position['row'] = button_location["y"]
         raise NextScene("Clue")
 
     def process_event(self, event):
@@ -42,17 +46,28 @@ class JeopardyFrame(Frame):
         # Now pass on to lower levels for normal handling of the event.
         return super(JeopardyFrame, self).process_event(event)
 
-    def define_grid(self, layouts, screen_height):
+    def define_grid(self, screen):
         # Create the grid of categories and values
-        for index in range(len(categories)):
-            category = Label(categories[index]['category'], align='^')
+        for category_index in range(len(categories)):
+            category = Label(categories[category_index]['category'], align='^')
             category.custom_colour = "field"
-            layouts[0].add_widget(category, index)
-            layouts[0].add_widget(Divider(), index)
+            self.layouts[0].add_widget(category, category_index)
+            self.layouts[0].add_widget(Divider(), category_index)
 
-            for value_index in range(len(categories[index]['clues'])):
-                layouts[value_index + 1].add_widget(Button(categories[index]["clues"][value_index]["points"], self._clicked), index)
-                layouts[value_index + 1].add_widget(Divider(draw_line=False, height=screen_height // 7), index)
+            for clue_index in range(len(categories[category_index]['clues'])):
+                button = Button(
+                    categories[category_index]["clues"][clue_index]["points"],
+                    self._clicked
+                )
+                button._location = {"x": category_index, "y": clue_index}
+                button._on_click = lambda bound_value = button._location: self._clicked(screen, bound_value)
+
+                self.layouts[clue_index + 1].add_widget(
+                    button,
+                    category_index
+                )
+
+                self.layouts[clue_index + 1].add_widget(Divider(draw_line=False, height=screen.height // 7), category_index)
 
 class ClueFrame(Frame):
     def __init__(self, screen):
@@ -69,12 +84,14 @@ class ClueFrame(Frame):
         self.add_layout(layout)
         self.add_layout(layout2)
         self.add_effect(self._figlet(self._canvas, {"text": "CLUE", "font": 'starwars'},[screen.width // 2, 1], 20))
+
         self.padding = Label("", align='^', height=10)
-        category = Label("These data types are all examples of Sequence types or ordered sets.", align='^', height=2)
         self.padding.custom_colour = "field"
-        category.custom_colour = "field"
         layout.add_widget(self.padding, 0)
-        layout2.add_widget(category, 0)
+
+        self.clue = Label(categories[clue_position['column']]['clues'][clue_position['row']]['clue'])
+        self.clue.custom_colour = "field"
+        layout2.add_widget(self.clue, 0)
 
         # Prepare the Frame for use.
         self.fix()
@@ -96,6 +113,9 @@ class ClueFrame(Frame):
 
         self.padding.text = "Partayyy!"
 
+    def _loaded(self):
+        self.clue.text = categories[clue_position['column']]['clues'][clue_position['row']]['clue']
+
 
     def process_event(self, event):
         # Do the key handling for this Frame.
@@ -110,9 +130,11 @@ class ClueFrame(Frame):
 
 
 def jeopardy(screen, old_scene):
+    clue_frame = ClueFrame(screen)
+    clue_frame._on_load = lambda: clue_frame._loaded()
     scenes = [
         Scene([JeopardyFrame(screen)], name="Main"),
-        Scene([ClueFrame(screen)], name="Clue")
+        Scene([clue_frame], name="Clue", clear=True)
     ]
     screen.play(scenes, stop_on_resize=True, start_scene=old_scene, allow_int=True)
 
