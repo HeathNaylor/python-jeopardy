@@ -6,7 +6,7 @@ from frames.player import buzzed_players, players
 
 def server():
     asyncio.set_event_loop(asyncio.new_event_loop())
-    start_server = websockets.serve(hello, 'localhost', 8766)
+    start_server = websockets.serve(hello, '192.168.1.232', 8766)
 
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
