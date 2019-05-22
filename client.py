@@ -1,14 +1,29 @@
 import asyncio
+import readchar 
 import websockets
+import sys
+
+name = "a"
+
+async def buzz():
+    print(name)
 
 async def hello():
-    async with websockets.connect('ws://localhost:8765') as websocket:
-        name = input("What's your name? ")
+    name = await websocket.recv()
+    print(f"< {name}")
 
-        await websocket.send(name)
-        print(f"> {name}")
+    greeting = f"Hello {name}!"
 
-        greeting = await websocket.recv()
-        print(f"< {greeting}")
+    await websocket.send(greeting)
+    print(f"> {greeting}")
 
-asyncio.get_event_loop().run_until_complete(hello())
+start_server = websockets.serve(hello, 'localhost', 8766)
+asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.get_event_loop().run_forever()
+
+while True:
+    key = ord(readchar.readkey())
+    if key == 113:
+        sys.exit()
+    if key == 32:
+        asyncio.run(buzz())
