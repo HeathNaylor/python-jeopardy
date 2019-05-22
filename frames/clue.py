@@ -70,6 +70,13 @@ class ClueFrame(Frame):
                 players[index]["points"] += int(categories[clue_position['column']]['clues'][clue_position['row']]['points'])
                 print(players)
 
+    def remove_points(self):
+        for index, player in enumerate(players):
+            print(buzzed_players[0])
+            if player["name"] == buzzed_players[0]:
+                players[index]["points"] -= int(categories[clue_position['column']]['clues'][clue_position['row']]['points'])
+                print(players)
+
     def process_event(self, event):
         # Do the key handling for this Frame.
         if isinstance(event, KeyboardEvent):
@@ -77,8 +84,10 @@ class ClueFrame(Frame):
                 self._toggle_answer()
             if event.key_code in [ord('y'), ord('Y')]:
                 self.add_points()
+                buzzed_players.clear()
             if event.key_code in [ord('n'), ord('N')]:
-                print("Derp")
+                self.remove_points()
+                buzzed_players.clear()
             if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:
                 self.clue.text = ""
                 self.question.text = ""
