@@ -63,12 +63,22 @@ class ClueFrame(Frame):
     def _loaded(self):
         self.clue.text = categories[clue_position['column']]['clues'][clue_position['row']]['clue']
 
+    def add_points(self):
+        for index, player in enumerate(players):
+            print(buzzed_players[0])
+            if player["name"] == buzzed_players[0]:
+                players[index]["points"] += int(categories[clue_position['column']]['clues'][clue_position['row']]['points'])
+                print(players)
 
     def process_event(self, event):
         # Do the key handling for this Frame.
         if isinstance(event, KeyboardEvent):
             if event.key_code == ord('r'):
                 self._toggle_answer()
+            if event.key_code in [ord('y'), ord('Y')]:
+                self.add_points()
+            if event.key_code in [ord('n'), ord('N')]:
+                print("Derp")
             if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:
                 self.clue.text = ""
                 self.question.text = ""
