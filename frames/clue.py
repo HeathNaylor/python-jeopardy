@@ -5,6 +5,7 @@ from asciimatics.event import KeyboardEvent
 from CategoriesModel import categories
 from asciimatics.screen import Screen
 from asciimatics.effects import Print
+from frames.player import players, buzzed_players
 
 clue_position = {"row": 0, "column": 0}
 

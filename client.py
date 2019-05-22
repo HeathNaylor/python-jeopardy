@@ -1,29 +1,36 @@
 import asyncio
-import readchar 
+import readchar
 import websockets
+import socket
+import json
 import sys
 
-name = "a"
+name = ""
+
+def update_name(user):
+    global name
+    name = user
 
 async def buzz():
-    print(name)
+    async with websockets.connect('ws://localhost:8766') as websocket:
+        data = {"event": "buzz", "name": name}
+        await websocket.send(json.dumps(data))
+        response = await websocket.recv()
+        print(response)
 
 async def hello():
-    name = await websocket.recv()
-    print(f"< {name}")
+    async with websockets.connect('ws://localhost:8766') as websocket:
+        update_name(input("What's your name? "))
+        data = {"event": "join", "name": name, "hostname": socket.gethostname()}
+        await websocket.send(json.dumps(data))
+        response = await websocket.recv()
+        print(response)
 
-    greeting = f"Hello {name}!"
-
-    await websocket.send(greeting)
-    print(f"> {greeting}")
-
-start_server = websockets.serve(hello, 'localhost', 8766)
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+asyncio.get_event_loop().run_until_complete(hello())
 
 while True:
     key = ord(readchar.readkey())
-    if key == 113:
+    if key in (3, 4, 113):
         sys.exit()
     if key == 32:
         asyncio.run(buzz())
