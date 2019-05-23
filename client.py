@@ -6,7 +6,6 @@ import json
 import sys
 
 name = ""
-ip = "localhost"
 
 def update_name(user):
     global name
@@ -22,6 +21,8 @@ async def buzz():
 async def hello():
     global ip
     ip = input("IP: ")
+    if not ip:
+        ip = "localhost"
     async with websockets.connect("ws://" + ip + ":8766") as websocket:
         update_name(input("What's your name? "))
         data = {"event": "join", "name": name, "hostname": socket.gethostname()}

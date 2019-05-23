@@ -20,6 +20,9 @@ class Player():
         length = db.llen("buzzed_player")
         return [(db.lindex("buzzed_player", index)).decode() for index in range(length)]
 
+    def all_buzzed_players_names():
+        return [Player.get_player_name(hostname) for hostname in Player.all_buzzed_players()]
+
     def add_buzzed_player(player):
         db.rpush("buzzed_player", player)
 

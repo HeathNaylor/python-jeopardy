@@ -22,6 +22,7 @@ def join_player(event):
 def buzz_player_in(event):
     if not Clue.allowed_to_buzz():
         return False
+    buzzed_players = Player.all_buzzed_players()
     if event['hostname'] not in buzzed_players:
         Player.add_buzzed_player(event['hostname'])
     return True

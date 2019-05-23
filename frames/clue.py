@@ -40,6 +40,13 @@ class ClueFrame(ParentFrame):
         self.question.custom_colour = "field"
         layout2.add_widget(self.question, 0)
 
+        answer_padding = Label("", align='^', height=10)
+        layout2.add_widget(question_padding, 0)
+
+        self.buzzed_players = Label("", align='^')
+        self.buzzed_players.custom_colour = "field"
+        layout2.add_widget(self.buzzed_players, 0)
+
         # Prepare the Frame for use.
         self.fix()
  
@@ -60,6 +67,8 @@ class ClueFrame(ParentFrame):
             clue_position['row'],
             'clue'
         )
+
+        self.buzzed_players.text = ", ".join(Player.all_buzzed_players_names())
 
     def add_points(self):
         buzzed_players = Player.all_buzzed_players()
@@ -108,6 +117,8 @@ class ClueFrame(ParentFrame):
                 Player.clear_buzzed_players()
                 Clue.disallow_buzzer()
                 raise NextScene("Main")
+            if event.key_code in [ord('p'), ord('P')]:
+                raise NextScene("Clue")
             if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:
                 self.clue.text = ""
                 self.question.text = ""

@@ -47,7 +47,7 @@ class PlayersFrame(ParentFrame):
 
         for hostname, name in players.items():
             player_list.append({'name': name, 'points': Points.get_points(hostname)})
-        self.players_label.text = "\n".join([f"{player['name']} - {player['points']}" for player in player_list])
+        self.players_label.text = "\n".join([f"{player['name']} | {player['points']}" for player in player_list])
 
     def process_event(self, event):
         # Do the key handling for this Frame.
