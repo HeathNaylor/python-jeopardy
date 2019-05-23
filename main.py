@@ -23,7 +23,7 @@ def jeopardy(screen, old_scene):
     ]
     screen.play(scenes, stop_on_resize=True, start_scene=old_scene, allow_int=True)
 
-
+server.ip = input("Server IP Address: ")
 thread = threading.Thread(target=server.server)
 thread.start()
 

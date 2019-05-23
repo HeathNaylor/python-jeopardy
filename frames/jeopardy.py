@@ -1,11 +1,12 @@
-from asciimatics.widgets import Frame, Layout, Widget, Label, Divider, Button
+from asciimatics.widgets import Layout, Widget, Label, Divider, Button
 from asciimatics.exceptions import NextScene, StopApplication
+from frames.clue import ClueFrame, clue_position
+from frames.parent_frame import ParentFrame
 from asciimatics.event import KeyboardEvent
 from asciimatics.screen import Screen
-from frames.clue import ClueFrame, clue_position
 from CategoriesModel import categories
 
-class JeopardyFrame(Frame):
+class JeopardyFrame(ParentFrame):
     def __init__(self, screen):
         super(JeopardyFrame, self).__init__(
             screen,
@@ -26,9 +27,10 @@ class JeopardyFrame(Frame):
         # Prepare the Frame for use.
         self.fix()
 
-    def _clicked(self, screen, button_location):
-        clue_position['column'] = button_location["x"]
-        clue_position['row'] = button_location["y"]
+    def _clicked(self, screen, button):
+        clue_position['column'] = button._location["x"]
+        clue_position['row'] = button._location["y"]
+        self.hide_button(clue_position['column'], clue_position['row'])
         raise NextScene("Clue")
 
     def process_event(self, event):
@@ -55,8 +57,9 @@ class JeopardyFrame(Frame):
                     categories[category_index]["clues"][clue_index]["points"],
                     self._clicked
                 )
+                button._name = f"{category_index},{clue_index}"
                 button._location = {"x": category_index, "y": clue_index}
-                button._on_click = lambda bound_value = button._location: self._clicked(screen, bound_value)
+                button._on_click = lambda bound_value = button: self._clicked(screen, bound_value)
 
                 self.layouts[clue_index + 1].add_widget(
                     button,
