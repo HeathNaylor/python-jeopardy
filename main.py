@@ -4,6 +4,7 @@ from asciimatics.scene import Scene
 from frames.jeopardy import JeopardyFrame
 from frames.player import PlayersFrame
 from frames.clue import ClueFrame
+from frames.entry import EntryFrame
 import threading
 import server
 import sys
@@ -17,6 +18,7 @@ def jeopardy(screen, old_scene):
     players_frame._on_load = lambda: players_frame._loaded()
 
     scenes = [
+        Scene([EntryFrame(screen)], name="Entry"),
         Scene([JeopardyFrame(screen)], name="Main"),
         Scene([clue_frame], name="Clue", clear=True),
         Scene([players_frame], name="Players"),

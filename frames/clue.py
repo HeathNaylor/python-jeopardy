@@ -108,11 +108,15 @@ class ClueFrame(ParentFrame):
             if event.key_code in [ord('b'), ord('B')]:
                 Clue.allow_buzzer()
             if event.key_code in [ord('y'), ord('Y')]:
+                self.clue.text = ""
+                self.question.text = ""
                 self.add_points()
                 Player.clear_buzzed_players()
                 Clue.disallow_buzzer()
                 raise NextScene("Main")
             if event.key_code in [ord('n'), ord('N')]:
+                self.clue.text = ""
+                self.question.text = ""
                 self.remove_points()
                 Player.clear_buzzed_players()
                 Clue.disallow_buzzer()

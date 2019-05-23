@@ -36,7 +36,7 @@ class JeopardyFrame(ParentFrame):
     def process_event(self, event):
         # Do the key handling for this Frame.
         if isinstance(event, KeyboardEvent):
-            if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:
+            if event.key_code in [ord('|'), Screen.ctrl("c")]:
                 raise StopApplication("User quit")
             if event.key_code in [ord('p'), ord('P')]:
                 raise NextScene("Players")
