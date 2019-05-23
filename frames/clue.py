@@ -5,7 +5,7 @@ from CategoriesModel import categories, Categories
 from asciimatics.screen import Screen
 from frames.player import players, buzzed_players
 from frames.parent_frame import ParentFrame
-from storage.redis import Clue
+from storage.redis import Clue, Player, Points
 
 clue_position = {"row": 0, "column": 0}
 
@@ -62,32 +62,34 @@ class ClueFrame(ParentFrame):
         )
 
     def add_points(self):
+        buzzed_players = Player.all_buzzed_players()
         if not len(buzzed_players):
             return
 
-        for index, player in enumerate(players):
-            if player["name"] == buzzed_players[0]:
-                players[index]["points"] += int(Categories.getClueField(
+        for index, player in enumerate(buzzed_players):
+            if player == Player.get_first_buzzed_player():
+                points = int(Categories.getClueField(
                     clue_position['column'],
                     clue_position['row'],
                     'points'
                 ))
-                Categories.markAnswered(
-                        clue_position['column'],
-                        clue_position['row']
-                )
+
+                Points.adjust_points(player, points)
 
     def remove_points(self):
+        buzzed_players = Player.all_buzzed_players()
         if not len(buzzed_players):
             return
 
-        for index, player in enumerate(players):
-            if player["name"] == buzzed_players[0]:
-                players[index]["points"] -= int(Categories.getClueField(
+        for index, player in enumerate(buzzed_players):
+            if player == Player.get_first_buzzed_player():
+                points = int(Categories.getClueField(
                     clue_position['column'],
                     clue_position['row'],
                     'points'
                 ))
+
+                Points.adjust_points(player, (points * -1))
 
     def process_event(self, event):
         # Do the key handling for this Frame.
@@ -98,12 +100,12 @@ class ClueFrame(ParentFrame):
                 Clue.allow_buzzer()
             if event.key_code in [ord('y'), ord('Y')]:
                 self.add_points()
-                buzzed_players.clear()
+                Player.clear_buzzed_players()
                 Clue.disallow_buzzer()
                 raise NextScene("Main")
             if event.key_code in [ord('n'), ord('N')]:
                 self.remove_points()
-                buzzed_players.clear()
+                Player.clear_buzzed_players()
                 Clue.disallow_buzzer()
                 raise NextScene("Main")
             if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:

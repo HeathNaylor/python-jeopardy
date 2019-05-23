@@ -3,11 +3,12 @@ import asyncio
 import websockets
 import websockets
 from frames.player import buzzed_players, players
-from storage.redis import Clue
+from storage.redis import Clue, Player, Points
 
 ip = "localhost" 
 
 def server():
+    Clue.disallow_buzzer()
     asyncio.set_event_loop(asyncio.new_event_loop())
     start_server = websockets.serve(hello, ip, 8766)
 
@@ -15,19 +16,14 @@ def server():
     asyncio.get_event_loop().run_forever()
 
 def join_player(event):
-    for index, player in enumerate(players):
-        if not player["hostname"] == event["hostname"]:
-            continue
-        players[index]["name"] = event["name"]
-        return
-
-    players.append({"hostname": event["hostname"], "name": event["name"], "points": 0})
+    Player.add_player(event["hostname"], event["name"])
+    Points.adjust_points(event["hostname"], 0)
 
 def buzz_player_in(event):
     if not Clue.allowed_to_buzz():
         return False
-    if event['name'] not in buzzed_players:
-        buzzed_players.append(event['name'])
+    if event['hostname'] not in buzzed_players:
+        Player.add_buzzed_player(event['hostname'])
     return True
 
 async def hello(websocket, path):

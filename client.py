@@ -14,7 +14,7 @@ def update_name(user):
 
 async def buzz():
     async with websockets.connect("ws://" + ip + ":8766") as websocket:
-        data = {"event": "buzz", "name": name}
+        data = {"event": "buzz", "hostname": socket.gethostname(), "name": name}
         await websocket.send(json.dumps(data))
         response = await websocket.recv()
         print(response)

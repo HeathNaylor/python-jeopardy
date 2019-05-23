@@ -3,6 +3,7 @@ from asciimatics.exceptions import NextScene, StopApplication
 from frames.parent_frame import ParentFrame
 from asciimatics.event import KeyboardEvent
 from asciimatics.screen import Screen
+from storage.redis import Player, Points
 
 players = []
 buzzed_players = []
@@ -19,7 +20,7 @@ class PlayersFrame(ParentFrame):
             name="Players"
         )
         layout = Layout([1])
-        layout2 = Layout([1,1])
+        layout2 = Layout([1])
         self.add_layout(layout)
         self.add_layout(layout2)
 
@@ -34,25 +35,24 @@ class PlayersFrame(ParentFrame):
         layout2.add_widget(self.players_title, 0)
         layout2.add_widget(self.players_label, 0)
 
-        self.buzzed_players_title = Label("Buzzed In", height=2, align='^')
-        self.buzzed_players_label = Label("Test", height=10, align='^')
-        self.buzzed_players_label.custom_colour = "field"
-        layout2.add_widget(self.buzzed_players_title, 1)
-        layout2.add_widget(self.buzzed_players_label, 1)
         self.fix()
 
     def _loaded(self):
-        self.buzzed_players_label.text = "\n".join(buzzed_players)
-        self.players_label.text = "\n".join([f"{player['name']} - {player['points']}" for player in players])
+        players = Player.get_all_players()
+        print(players)
+        if not players:
+            return
+
+        player_list = []
+
+        for hostname, name in players.items():
+            player_list.append({'name': name, 'points': Points.get_points(hostname)})
+        self.players_label.text = "\n".join([f"{player['name']} - {player['points']}" for player in player_list])
 
     def process_event(self, event):
         # Do the key handling for this Frame.
         if isinstance(event, KeyboardEvent):
             if event.key_code in [ord('p'), ord('P')]:
-                raise NextScene("Players")
-            if event.key_code in [ord('c'), ord('C')]:
-                self.buzzed_players_label.text = ""
-                buzzed_players.clear()
                 raise NextScene("Players")
             if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:
                 raise NextScene("Main")
